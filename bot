@@ -1,0 +1,71 @@
+import nest_asyncio
+if __name__ == '__main__':
+    nest_asyncio.apply()
+    
+import logging
+import os
+
+import aiogram.types.file
+from aiogram import Bot, Dispatcher, executor, types
+from keras.models import load_model
+from keras_preprocessing import image
+from keras_preprocessing.image import img_to_array
+import numpy as np
+import tensorflow as tf
+import cv2
+from translate import Translator
+API_TOKEN = "5984004084:AAG_hiN4pnaiU6o8sODJwU7QtARZV-Uf0zE"
+
+logging.basicConfig(level=logging.DEBUG)
+
+bot = Bot(token=API_TOKEN)
+dp = Dispatcher(bot)
+
+
+@dp.message_handler(commands=['start'])
+async def echo(message: types.Message):
+   await message.reply('Добро пожаловать! Просто пришли фото продукта и я сформирую ценник! ')
+
+
+@dp.message_handler(commands=['help'])
+async def echo(message: types.Message):
+   await message.reply('Вы обратились к справке бота. Для формирования ценника просто отправь мне фото покупки')
+
+
+def get_img_array(img_path, size):
+    img = tf.keras.preprocessing.image.load_img(img_path, target_size=size)
+    array = tf.keras.preprocessing.image.img_to_array(img)
+    # We add a dimension to transform our array into a "batch"
+    # of size "size"
+    array = np.expand_dims(array, axis=0)
+    return array
+
+def predictions(img_path):
+    img_size = (224, 224)
+    classifier = load_model("C:/Users/User/Desktop/ВШЭ/Савченко/2/model_weights.h5")
+    class_labels = ['Яблоко', 'Банан', 'Свекла', 'Болгарский перец', 'Капуста', 'Стручковый перец', 'Морковь', 'Цветная капуста',
+                    'Перец чили', 'Кукуруза', 'Огурец', 'Баклажан', 'Чеснок', 'Имбирь', 'Виноград', 'Халапеньо', 'Киви',
+                    'Лимон', 'Латук', 'Манго', 'Лук', 'Апельсин', 'Паприка', 'Груша', 'Горох', 'Ананас', 'Гранат',
+                    'Картофель', 'Редька', 'Соевые бобы', 'Шпинат', 'Сладкая кукуруза', 'Батат', 'Помидор', 'Репа', 'Арбуз']
+
+    try:
+        preprocess_input = tf.keras.applications.mobilenet_v2.preprocess_input
+        decode_predictions = tf.keras.applications.mobilenet_v2.decode_predictions
+        img_array = preprocess_input(get_img_array(img_path, size=img_size))
+        pred = np.argmax(classifier.predict(img_array), axis=1)
+        predictions = class_labels[pred[0]]
+        return predictions
+    except Exception:
+        return "Проблемы с изображением"
+
+
+@dp.message_handler(content_types=[types.ContentType.PHOTO])
+async def download_photo(message: types.Message):
+    await message.photo[-1].download()
+    img_path = (await bot.get_file(message.photo[-1].file_id)).file_path
+    pred = predictions(img_path)
+    await message.answer(f"Это {pred}, генерирую QR на оплату. Давай добавим еще свежих овощей и фруктов!")
+
+if __name__ == '__main__':
+   executor.start_polling(dp, skip_updates=True)    
+   
