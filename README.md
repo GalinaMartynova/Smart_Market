@@ -13,4 +13,4 @@ https://www.kaggle.com/datasets/kritikseth/fruit-and-vegetable-image-recognition
 https://www.kaggle.com/datasets/chrisfilo/fruit-recognition  
 https://www.kaggle.com/datasets/misrakahmed/vegetable-image-dataset  
 
-Модель: keras (Sequential)
+Модель: MobileNetV2
