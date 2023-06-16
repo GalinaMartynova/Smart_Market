@@ -1,0 +1,98 @@
+import numpy as np
+import pandas as pd
+import tensorflow as tf
+from tensorflow import keras
+import matplotlib.pyplot as plt
+import os
+train_dir = '/content/drive/MyDrive/archive_fruits/train'
+test_dir = '/content/drive/MyDrive/archive_fruits/test'
+val_dir = '/content/drive/MyDrive/archive_fruits/validation'
+batch_size = 32
+image_size = 160
+
+train_data = tf.keras.preprocessing.image_dataset_from_directory(train_dir,
+                                                                 image_size=(image_size, image_size),
+                                                                 batch_size=batch_size)
+
+val_data = tf.keras.preprocessing.image_dataset_from_directory(val_dir,
+                                                                 image_size=(image_size, image_size),
+                                                                 batch_size=batch_size)
+class_name = train_data.class_names
+print(class_name)
+plt.figure(figsize=(10, 10))
+
+for images, labels in train_data.take(1):
+  for i in range(9):
+    ax = plt.subplot(3,3,i+1)
+    plt.imshow(images[i].numpy().astype('uint8'))
+    plt.title(class_name[labels[i]])
+    plt.axis('off')
+
+for image_batch, label_batch in train_data:
+  print(image_batch.shape)
+  print(label_batch.shape)
+  break
+first_image = image_batch[0]
+print(np.min(first_image), np.max(first_image))
+
+def format(image, label):
+  image = tf.cast(image, tf.float32)
+  image = image/255.0
+  return image, label
+  
+train = train_data.map(format)
+validation = val_data.map(format)
+
+format_first_image = format_image_batch[0]
+print(np.min(format_first_image), np.max(format_first_image))
+
+base_model = tf.keras.applications.MobileNetV2(input_shape = (image_size, image_size, 3),
+                                               include_top = False,
+                                               weights = 'imagenet') # используются предварительно обученные веса на наборе данных Imagenet
+                                               
+feature_batch = base_model(image_batch)
+print(feature_batch.shape)
+
+base_model.summary()
+global_average_layer = tf.keras.layers.GlobalAveragePooling2D()
+feature_batch_average = global_average_layer(feature_batch)
+print(feature_batch_average.shape)
+
+prediction_layer = keras.layers.Dense(36)
+prediction_batch = prediction_layer(feature_batch_average)
+print(prediction_batch.shape)
+
+model = tf.keras.Sequential([
+        base_model,
+        global_average_layer,
+        prediction_layer
+])
+
+learning_rate = 0.0001
+model.compile(optimizer=tf.keras.optimizers.RMSprop(learning_rate=learning_rate),
+              loss=tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True),
+              metrics=['accuracy'])
+              
+history = model.fit(train,
+                    epochs=10,
+                    validation_data=validation)
+                    
+def plot_graghs(history, metric):
+  plt.plot(history.history[metric])
+  plt.plot(history.history['val_'+metric], '')
+  plt.xlabel('Epochs')
+  plt.ylabel(metric)
+  plt.legend([metric, 'val_'+metric])
+  plt.show()
+  
+plot_graghs(history, 'accuracy')
+plot_graghs(history, 'loss')
+
+test_data = tf.keras.preprocessing.image_dataset_from_directory(test_dir,
+                                                                image_size=(image_size, image_size),
+                                                                batch_size = batch_size,
+                                                                shuffle=False)
+test = test_data.map(format)
+result = model.evaluate(test)
+print("Test loss, Test accuracy : ", result)
+model.save_weights('model_weights.h5')
