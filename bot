@@ -14,7 +14,7 @@ import numpy as np
 import tensorflow as tf
 import cv2
 from translate import Translator
-API_TOKEN = "5984004084:AAG_hiN4pnaiU6o8sODJwU7QtARZV-Uf0zE"
+API_TOKEN = "*****"
 
 logging.basicConfig(level=logging.DEBUG)
 
