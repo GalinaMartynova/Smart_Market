@@ -4,9 +4,9 @@ import tensorflow as tf
 from tensorflow import keras
 import matplotlib.pyplot as plt
 import os
-train_dir = '/content/drive/MyDrive/archive_fruits/train'
-test_dir = '/content/drive/MyDrive/archive_fruits/test'
-val_dir = '/content/drive/MyDrive/archive_fruits/validation'
+train_dir = '/***/train'
+test_dir = '/***/test'
+val_dir = '/***/validation'
 batch_size = 32
 image_size = 160
 
