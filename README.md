@@ -14,3 +14,5 @@ https://www.kaggle.com/datasets/chrisfilo/fruit-recognition
 https://www.kaggle.com/datasets/misrakahmed/vegetable-image-dataset  
 
 Модель: MobileNetV2
+
+Презентация: https://docs.google.com/presentation/d/1vmNBIQgBekrSR9wqnIaTVd3qAtxhgG0y/edit?usp=sharing&ouid=104465919944970089099&rtpof=true&sd=true
